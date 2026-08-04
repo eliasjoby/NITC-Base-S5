@@ -8,28 +8,47 @@
 int main(int argc, char *argv[]) {
   Disk disk_run;
 
-  unsigned char buffer[BLOCK_SIZE];
-  Disk::readBlock(buffer, 7000);
-  char message[] = "hello";
-  memcpy(buffer + 20, message, 6);
-  Disk::writeBlock(buffer, 7000);
+  //objects for reln and attrib catalog
+  RecBuffer relCatBuffer(RELCAT_BLOCK);
+  RecBuffer attrCatBuffer(ATTRCAT_BLOCK);
 
-  unsigned char buffer2[BLOCK_SIZE];
-  char message2[6];
-  Disk::readBlock(buffer2, 7000);
-  memcpy(message2, buffer2 + 20, 6);
-  std::cout << message2 << std::endl;
+  HeadInfo relCatHeader;
+  HeadInfo attrCatHeader;
 
-  //exercise
-  unsigned char buffer3[BLOCK_SIZE];
-  char message3[2048];
-  Disk::readBlock(buffer3, 0);
-  memcpy(message3, buffer3, 2048);
+  //load headers
+  relCatBuffer.getHeader(&relCatHeader);
+  attrCatBuffer.getHeader(&attrCatHeader);
 
-  for(auto ch:message3){
-    std::cout << ch << " ";
+  for(int i=0;i<relCatHeader.numEntries;i++){
+    Attribute relCatRecord[6];
+
+    relCatBuffer.getRecord(relCatRecord,i);
+
+    printf("Relation: %s\n",relCatRecord[0].sVal);
+
+    //loop thru all psbl attrCat blocks
+    int blockNum=ATTRCAT_BLOCK;
+    while(1){
+      
+      RecBuffer attrCatBuffer(blockNum);
+      HeadInfo attrCatHeader;
+      attrCatBuffer.getHeader(&attrCatHeader);
+
+      for(int j=0;j<attrCatHeader.numEntries;j++){
+        Attribute attrCatRecord[6];
+        attrCatBuffer.getRecord(attrCatRecord,j);
+
+        if(!strcmp(attrCatRecord[0].sVal,relCatRecord[0].sVal)){
+          const char *attrType= (attrCatRecord[2].nVal==NUMBER)? "NUM":"STR";
+          printf(" %s: %s\n",attrCatRecord[0].sVal,attrType);
+        }
+      }
+
+      if(attrCatHeader.rblock==-1)break;
+      else blockNum=attrCatHeader.rblock;
+    }
+
   }
-  std::cout << std::endl;
 
   return 0;
 }
