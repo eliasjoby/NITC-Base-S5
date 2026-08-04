@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
         if(!strcmp(attrCatRecord[0].sVal,relCatRecord[0].sVal)){
           const char *attrType= (attrCatRecord[2].nVal==NUMBER)? "NUM":"STR";
-          printf(" %s: %s\n",attrCatRecord[0].sVal,attrType);
+          printf(" %s: %s\n",attrCatRecord[1].sVal,attrType);
         }
       }
 
