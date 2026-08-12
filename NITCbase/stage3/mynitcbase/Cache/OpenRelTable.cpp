@@ -160,5 +160,19 @@ OpenRelTable::OpenRelTable(){
 }
 
 OpenRelTable::~OpenRelTable() {
-    // free all the memory that you allocated in the constructor
+        // free all the memory that you allocated in the constructor
+    for (int relId = 0; relId <3; relId++) {
+        // free relCache entry, if it exists
+        if (RelCacheTable::relCache[relId] != nullptr) {
+            free(RelCacheTable::relCache[relId]);
+        }
+
+        // free attrCache linked list, if it exists
+        AttrCacheEntry* entry = AttrCacheTable::attrCache[relId];
+        while (entry != nullptr) {
+            AttrCacheEntry* temp = entry;
+            entry = entry->next;
+            free(temp);
+        }
+    }
 }
