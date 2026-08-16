@@ -73,6 +73,40 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
     return SUCCESS;
 }
 
+// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// <stage4>
+
+
+/* 
+  Used to get the slotmap from a record block
+  NOTE: this function expects the caller to allocate memory for `*slotMap`
+*/
+int RecBuffer::getSlotMap(unsigned char *slotMap) {
+    unsigned char *bufferPtr;
+
+    // get the starting address of the buffer containing the block using loadBlockAndGetBufferPtr().
+    int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    struct HeadInfo head;
+    this->getHeader(&head);
+
+    int slotCount = head.numSlots;
+
+    // get a pointer to the beginning of the slotmap in memory by offsetting HEADER_SIZE
+    unsigned char *slotMapInBuffer = bufferPtr + HEADER_SIZE;
+
+    // copy the values from `slotMapInBuffer` to `slotMap` (size is `slotCount`)
+    for (int i = 0; i < slotCount; i ++ ){
+        slotMap[i] = slotMapInBuffer[i];
+    }
+
+    return SUCCESS;
+}
+
 /*
 Load a block to the buffer and get a pointer to it.
 NOTE: this function expects the caller to allocate memory for the argument
@@ -95,4 +129,22 @@ int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr) {
     // printf("debug2: %u\n",buffPtr);
 
     return SUCCESS;
+}
+
+
+// ---------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+
+// Used to perform operations and comparisons in SQL queries
+int compareAttrs(union Attribute attr1, union Attribute attr2, int attrType) {
+
+    double diff;
+    if (attrType == STRING)
+        diff = strcmp(attr1.sVal, attr2.sVal);
+    else
+        diff = attr1.nVal - attr2.nVal;
+
+    if (diff > 0) return 1;
+    else if (diff < 0) return -1;
+    else return 0;
 }

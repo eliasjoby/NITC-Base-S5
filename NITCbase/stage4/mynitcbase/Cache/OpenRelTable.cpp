@@ -159,6 +159,13 @@ OpenRelTable::OpenRelTable(){
 
 }
 
+int OpenRelTable::getRelId(char relName[ATTR_SIZE]) {
+    if (!strcmp(relName, RELCAT_RELNAME)) return RELCAT_RELID;
+    if (!strcmp(relName, ATTRCAT_RELNAME)) return ATTRCAT_RELID;
+    if (!strcmp(relName, "Students")) return ATTRCAT_RELID + 1 ;
+    return E_RELNOTOPEN;
+}
+
 OpenRelTable::~OpenRelTable() {
-    // free all the memory that you allocated in the constructor
+  // free all the memory that you allocated in the constructor
 }
