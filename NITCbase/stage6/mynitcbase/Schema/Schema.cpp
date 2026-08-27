@@ -33,3 +33,31 @@ int Schema::closeRel(char relName[ATTR_SIZE]) {
 
     return OpenRelTable::closeRel(relId);
 }
+
+int Schema::renameRel(char oldRelName[ATTR_SIZE], char newRelName[ATTR_SIZE]) {
+    if ( !strcmp(oldRelName, RELCAT_RELNAME)|| !strcmp(oldRelName, ATTRCAT_RELNAME) || !strcmp(newRelName, RELCAT_RELNAME) || !strcmp(newRelName, ATTRCAT_RELNAME)){
+        return E_NOTPERMITTED;
+    }
+
+    int relId = OpenRelTable::getRelId(oldRelName);
+    if ( relId != E_RELNOTOPEN ){
+        return E_RELOPEN;
+    }
+
+    int retVal = BlockAccess::renameRelation(oldRelName, newRelName);
+    return retVal;
+}
+
+int Schema::renameAttr(char *relName, char *oldAttrName, char *newAttrName) {
+    if ( !strcmp(relName, RELCAT_RELNAME) || !strcmp(relName, ATTRCAT_RELNAME) ){
+        return E_NOTPERMITTED;
+    }
+
+    int relId = OpenRelTable::getRelId(relName);
+    if ( relId != E_RELNOTOPEN ){
+        return E_RELOPEN;
+    }
+
+    int retVal = BlockAccess::renameAttribute(relName, oldAttrName, newAttrName);
+    return retVal;
+}
