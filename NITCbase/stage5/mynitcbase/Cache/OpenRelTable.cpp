@@ -236,11 +236,11 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE]) {
     RecBuffer relCatBlock(RELCAT_BLOCK);
     Attribute relCatRecord[RELCAT_NO_ATTRS];
 
-    relCatBlock.getRecord(relCatRecord, relcatRecId.slot);
+    relCatBlock.getRecord(relCatRecord, relcatRecId.slot); // get the record corresponding to relcatRecId from the Relation Catalog block
 
     struct RelCacheEntry relCacheEntry;
     RelCacheTable::recordToRelCatEntry(relCatRecord, &relCacheEntry.relCatEntry);
-    relCacheEntry.recId.block = RELCAT_BLOCK;
+    relCacheEntry.recId.block = RELCAT_BLOCK;  // the relnCacheEntry will always be in the RELCAT_BLOCK, so set the block number to RELCAT_BLOCK
     relCacheEntry.recId.slot = relcatRecId.slot;
 
     // allocate this on the heap because we want it to persist outside this function
@@ -329,7 +329,7 @@ OpenRelTable::~OpenRelTable() {
     // close all open relations from rel-id = 2 onwards.
     for (int i = 2; i < MAX_OPEN; ++i) {
         if (!tableMetaInfo[i].free) {
-        OpenRelTable::closeRel(i);
+            OpenRelTable::closeRel(i);
         }
     }
     // free the memory allocated for rel-id 0 and 1 in the caches
