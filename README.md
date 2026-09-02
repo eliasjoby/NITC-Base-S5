@@ -1,6 +1,6 @@
-# NITCbase NITC OS Lab
+# NITCbase
 
-Repo contains the project files of NITCbase, a Relational Database Management System (RDBMS) built from scratch as a part of the OS Lab Course I took in Sem 4 at NITC.
+Repo contains the project files of NITCbase, a Relational Database Management System (RDBMS) built from scratch as a part of the DBMS Lab Course I took in Sem 5 at NITC.
 
 ## Foreword
 
