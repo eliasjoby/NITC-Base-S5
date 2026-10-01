@@ -42,6 +42,10 @@ int AttrCacheTable::getAttrCatEntry(int relId, char attrName[ATTR_SIZE], AttrCat
         return E_OUTOFBOUND;
     }
 
+    // if there's no entry at the rel-id, the relation is not open
+    if (attrCache[relId] == nullptr) {
+        return E_RELNOTOPEN;
+    }
 
     // find attribute which matches attrName
     for (AttrCacheEntry* entry = attrCache[relId]; entry != nullptr; entry = entry->next) {
