@@ -349,11 +349,60 @@ int OpenRelTable::closeRel(int relId) {
 
 
 OpenRelTable::~OpenRelTable() {
+
     // close all open relations from rel-id = 2 onwards.
     for (int i = 2; i < MAX_OPEN; ++i) {
         if (!tableMetaInfo[i].free) {
             OpenRelTable::closeRel(i);
         }
     }
-    // free the memory allocated for rel-id 0 and 1 in the caches
+
+    /**** Closing the catalog relations in the relation cache ****/
+
+    //releasing the relation cache entry of the attribute catalog
+    if ( RelCacheTable::relCache[ATTRCAT_RELID]->dirty == true ) {
+
+        Attribute attrCatInRelCatRecord[RELCAT_NO_ATTRS];
+        RelCacheTable::relCatEntryToRecord(&RelCacheTable::relCache[ATTRCAT_RELID]->relCatEntry,
+                                            attrCatInRelCatRecord);
+
+        // declaring an object of RecBuffer class to write back to the buffer
+        RecId recId = RelCacheTable::relCache[ATTRCAT_RELID]->recId;
+
+        // Writing the record back to the block
+        RecBuffer relCatBlock(recId.block);
+        relCatBlock.setRecord(attrCatInRelCatRecord, recId.slot);
+    }
+    // free the memory dynamically allocated to this RelCacheEntry
+    free(RelCacheTable::relCache[ATTRCAT_RELID]);
+
+    //releasing the relation cache entry of the relation catalog
+    if( RelCacheTable::relCache[RELCAT_RELID]->dirty == true ) {
+
+        Attribute relCatInRelCatRecord[RELCAT_NO_ATTRS];
+        RelCacheTable::relCatEntryToRecord(&RelCacheTable::relCache[RELCAT_RELID]->relCatEntry,
+                                            relCatInRelCatRecord);
+
+        RecId recId = RelCacheTable::relCache[RELCAT_RELID]->recId;
+        // declaring an object of RecBuffer class to write back to the buffer
+        RecBuffer relCatBlock(recId.block);
+
+        // Write back to the buffer using relCatBlock.setRecord() with recId.slot
+        relCatBlock.setRecord(relCatInRelCatRecord, recId.slot);
+    }
+    // free the memory dynamically allocated for this RelCacheEntry
+    free(RelCacheTable::relCache[RELCAT_RELID]);
+
+    // free the memory allocated for the attribute cache entries of the
+    // relation catalog and the attribute catalog ??
 }
+
+/*
+open table Students;
+open table Locations;
+open table Events;
+open table Participants;
+SELECT * FROM Events INTO null WHERE id>0;
+SELECT * FROM Locations INTO null WHERE name!=none;
+SELECT * FROM Participants INTO null WHERE regNo>0;
+*/
