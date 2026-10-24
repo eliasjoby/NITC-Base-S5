@@ -70,7 +70,7 @@ int Schema::createRel(char relName[],int nAttrs, char attrs[][ATTR_SIZE],int att
     strcpy(relNameAsAttribute.sVal, relName);
     char relnameAttrRelcat[] = RELCAT_ATTR_RELNAME;
     
-    // declare a variable targetRelId of type RecId
+    // declare a variable targeenRelTable() : 🟢tRelId of type RecId
     RecId targetRecId;
     RelCacheTable::resetSearchIndex(RELCAT_RELID);
     targetRecId = BlockAccess::linearSearch(RELCAT_RELID, relnameAttrRelcat, relNameAsAttribute, EQ );
