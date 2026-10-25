@@ -98,7 +98,8 @@ RecId BlockAccess::linearSearch(int relId,char attrName[ATTR_SIZE],union Attribu
             current record */
         Attribute currRecordAttr = searchRecord[attrCatBuf.offset];
         int cmpVal = compareAttrs( currRecordAttr, attrVal, attrCatBuf.attrType );
-
+        BPlusTree::numOfComparisons++;
+        
         /* Next task is to check whether this record satisfies the given condition.
             It is determined based on the output of previous comparison and
             the op value received.
@@ -380,15 +381,28 @@ int BlockAccess::insert(int relId, Attribute *record) {
     return SUCCESS;
 }
 
+
 /*
 NOTE: This function will copy the result of the search to the `record` argument. The caller should 
 ensure that space is allocated for `record` array based on the number of attributes in the relation.
 */
-int BlockAccess::search(  int relId,Attribute *record,char attrName[ATTR_SIZE],Attribute attrVal,int op ) {
-    // Try Linear Searching
+int BlockAccess::search(  int relId, Attribute *record, char attrName[ATTR_SIZE], Attribute attrVal, int op ) {
     RecId recId;
-    recId = linearSearch(relId, attrName, attrVal, op);
     
+    AttrCatEntry attrCatEntry;
+    int ret = AttrCacheTable::getAttrCatEntry(relId, attrName, &attrCatEntry);
+    if ( ret != SUCCESS ) return ret;
+
+    // Linear search if no root block mentioned
+    if ( attrCatEntry.rootBlock == -1 ) {
+        recId = linearSearch(relId, attrName, attrVal, op);
+    }
+    // Index exists for this attribute
+    else {
+        recId = BPlusTree::bPlusSearch(relId, attrName, attrVal, op);
+    }
+
+    // No record found
     if ( recId.slot == -1 && recId.block == -1 )
         return E_NOTFOUND;
 
@@ -399,17 +413,6 @@ int BlockAccess::search(  int relId,Attribute *record,char attrName[ATTR_SIZE],A
     return SUCCESS;
 }
 
-/*  
-  This function needs some explanation
-
-  It is changing both the buffers and the caches.
-  1. It is fetching the blocks of the disk from the relation catalogue entry of relName and
-     relasing these blocks.
-  2. Then it is deleting all the entries of the Attributes from ATTRCAT in Buffer (Eventually disk) 
-  3. Then it is deleting the entry relName from RELCAT
-*/
-/// @param relName 
-/// @return 
 int BlockAccess::deleteRelation(char relName[ATTR_SIZE]) {
 
     // if the relation to delete is either Relation Catalog or Attribute Catalog

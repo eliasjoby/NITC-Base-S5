@@ -6,27 +6,26 @@
 
 // will return if a string can be parsed as a floating point number
 bool isNumber(char *str) {
-    int len;
-    float ignore;
-    /*
-        sscanf returns the number of elements read, so if there is no float matching
-        the first %f, ret will be 0, else it'll be 1
+  int len;
+  float ignore;
+  /*
+    sscanf returns the number of elements read, so if there is no float matching
+    the first %f, ret will be 0, else it'll be 1
 
-        %n gets the number of characters read. this scanf sequence will read the
-        first float ignoring all the whitespace before and after. and the number of
-        characters read that far will be stored in len. if len == strlen(str), then
-        the string only contains a float with/without whitespace. else, there's other
-        characters.
-    */
-    int ret = sscanf(str, "%f %n", &ignore, &len);
-    return ret == 1 && len == strlen(str);
+    %n gets the number of characters read. this scanf sequence will read the
+    first float ignoring all the whitespace before and after. and the number of
+    characters read that far will be stored in len. if len == strlen(str), then
+    the string only contains a float with/without whitespace. else, there's other
+    characters.
+  */
+  int ret = sscanf(str, "%f %n", &ignore, &len);
+  return ret == 1 && len == strlen(str);
 }
-
 
 int Algebra::insert(char relName[ATTR_SIZE], int nAttrs, char record[][ATTR_SIZE]){
 
     // Cant insert into RELCAT or ATTRCAT
-    if ( !strcmp(relName, RELCAT_RELNAME)|| !strcmp(relName, ATTRCAT_RELNAME) ){
+    if ( strcmp(relName, RELCAT_RELNAME) == 0 || strcmp(relName, ATTRCAT_RELNAME) == 0 ){
         return E_NOTPERMITTED;
     }
 
@@ -72,7 +71,6 @@ int Algebra::insert(char relName[ATTR_SIZE], int nAttrs, char record[][ATTR_SIZE
     return retVal;
 }
 
-
 /* used to select all the records that satisfy a condition.
 the arguments of the function are
 - srcRel - the source relation we want to select from
@@ -81,8 +79,8 @@ the arguments of the function are
 - op - the operator of the condition
 - strVal - the value that we want to compare against (represented as a string)
 */
-int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr[ATTR_SIZE], int op, char strVal[ATTR_SIZE]) {
 
+int Algebra::select( char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr[ATTR_SIZE], int op, char strVal[ATTR_SIZE]) {
     int srcRelId = OpenRelTable::getRelId(srcRel);
     if (srcRelId == E_RELNOTOPEN) {
         return E_RELNOTOPEN;
@@ -102,72 +100,13 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
         if (isNumber(strVal)) {       // the isNumber() function is implemented below
             attrVal.nVal = atof(strVal);
         }
-        else{
+        else {
             return E_ATTRTYPEMISMATCH;
         }
-    }
+    } 
     else if (type == STRING) {
         strcpy(attrVal.sVal, strVal);
     }
-
-
-        /************************
-     The following code prints the contents of a relation directly to the output
-    console. Direct console output is not permitted by the actual the NITCbase
-    specification and the output can only be inserted into a new relation. We will
-    be modifying it in the later stages to match the specification.
-    ************************/
-
-    // printf("|");
-    // for (int i = 0; i < relCatEntry.numAttrs; ++i) {
-    //   AttrCatEntry attrCatEntry;
-    //   AttrCacheTable::getAttrCatEntry(srcRelId, i, &attrCatEntry);
-    //   printf(" %s |", attrCatEntry.attrName);
-    // }
-    // printf("\n");
-
-    // while (true) {
-
-    //   RecId searchRes = BlockAccess::linearSearch(srcRelId, attr, attrVal, op);
-
-    //   if (searchRes.block != -1 && searchRes.slot != -1) {
-
-    //     // get the record at searchRes using BlockBuffer.getRecord
-    //     RecBuffer block( searchRes.block );
-
-    //     HeadInfo header;
-    //     block.getHeader(&header);
-
-    //     Attribute record[header.numAttrs];
-    //     block.getRecord( record, searchRes.slot );
-    //     // print the attribute values in the same format as above
-    //     printf("|");
-    //     for (int i = 0; i < relCatEntry.numAttrs; ++i)
-    //     {
-    //         AttrCatEntry attrCatEntry;
-    //         // get attrCatEntry at offset i using AttrCacheTable::getAttrCatEntry()
-    //         int response = AttrCacheTable::getAttrCatEntry(srcRelId, i, &attrCatEntry);
-    //         if (response != SUCCESS)
-    //         {
-    //             printf("Invalid Attribute ID.\n");
-    //             exit(1);
-    //         }
-
-    //         if (attrCatEntry.attrType == NUMBER)
-    //         {
-    //             printf(" %d |", (int) record[i].nVal);
-    //         }
-    //         else
-    //         {
-    //             printf(" %s |", record[i].sVal);
-    //         }
-    //     }
-    //     printf("\n");
-    //   } 
-    //   else {
-    //     break;
-    //   }
-    // }
 
 
 
@@ -189,15 +128,18 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
         attr_types[i] = srcAttrCatEntry.attrType;
     }
 
+    // Create the relation for target relation
     ret = Schema::createRel(targetRel, src_nAttrs, attr_names, attr_types);
     if ( ret != SUCCESS ) return ret;
 
     // Open the newly created target relation
     int tarRelId = OpenRelTable::openRel(targetRel);
 
-    /* If opening fails, delete the target relation by calling Schema::deleteRel()
-        and return the error value returned from openRel() */
-    if ( tarRelId < 0 ) return tarRelId;
+    // If opening fails, delete the target relation
+    if ( tarRelId < 0 ) {
+        Schema::deleteRel(targetRel);
+        return tarRelId;
+    }
 
     /*** Selecting and inserting records into the target relation ***/
     /* Before calling the search function, reset the search to start from the
@@ -216,30 +158,31 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
     */
     //-----------------------B+TREE-------------------------------------------------------------------
     RelCacheTable::resetSearchIndex(srcRelId);
-    // AttrCacheTable::resetSearchIndex(srcRelId, attr);
+    AttrCacheTable::resetSearchIndex(srcRelId, attr);
 
     // read every record that satisfies the condition by repeatedly calling
     // BlockAccess::search() until there are no more records to be read
 
+    BPlusTree::numOfComparisons = 0;
     while (BlockAccess::search(srcRelId, record, attr, attrVal, op) == SUCCESS ) {
 
         int ret = BlockAccess::insert(tarRelId, record);
         if ( ret != SUCCESS ){
-        Schema::closeRel(targetRel);
-        Schema::deleteRel(targetRel);
-        printf("Failed to insert\n");
-        return ret;
+            Schema::closeRel(targetRel);
+            Schema::deleteRel(targetRel);
+            return ret;
         }
     }
-
+    
+    printf("Number of Comparisons: %d\n", BPlusTree::numOfComparisons);
     // Close the relation 
     Schema::closeRel(targetRel);
     return SUCCESS;
-    }
+}
 
 
-    // Project all columns into another relation (Copy relation basically)
-    int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE]) {
+// Project all columns into another relation (Copy relation basically)
+int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE]) {
 
     int ret;
 
@@ -291,6 +234,7 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
     while (BlockAccess::project(srcRelId, record) == SUCCESS )
     {
         ret = BlockAccess::insert(tarRelId, record);
+
         if (ret != SUCCESS) {
             Schema::closeRel(targetRel);
             Schema::deleteRel(targetRel);
@@ -299,11 +243,10 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
     }
     Schema::closeRel(targetRel);
     return SUCCESS;
-    }
+}
 
-    // Porject only specified columns into another relation
-    int Algebra::project( char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], int tar_nAttrs, char tar_Attrs[][ATTR_SIZE] ) {
-    
+// Porject only specified columns into another relation
+int Algebra::project( char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], int tar_nAttrs, char tar_Attrs[][ATTR_SIZE] ) {
     int ret;
 
     int srcRelId = OpenRelTable::getRelId(srcRel);
@@ -344,7 +287,6 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
         return tarRelId;
     }
 
-
     /*** Inserting projected records into the target relation ***/
 
     RelCacheTable::resetSearchIndex(srcRelId);
@@ -355,9 +297,9 @@ int Algebra::select(  char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char at
         Attribute proj_record[tar_nAttrs];
 
         for (int i = 0; i < tar_nAttrs; i++){
-        proj_record[i] = record[attr_offset[i]];
-        // if ( attr_types[i] == NUMBER ) proj_record[i].nVal = record[attr_offset[i]].nVal;
-        // else strcpy(proj_record[i].sVal, record[attr_offset[i]].sVal);
+            proj_record[i] = record[attr_offset[i]];
+            // if ( attr_types[i] == NUMBER ) proj_record[i].nVal = record[attr_offset[i]].nVal;
+            // else strcpy(proj_record[i].sVal, record[attr_offset[i]].sVal);
         }
 
         ret = BlockAccess::insert(tarRelId, proj_record);
