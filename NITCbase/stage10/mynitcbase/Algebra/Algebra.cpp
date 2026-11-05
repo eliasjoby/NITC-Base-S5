@@ -164,6 +164,8 @@ int Algebra::select( char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char att
     // BlockAccess::search() until there are no more records to be read
 
     BPlusTree::numOfComparisons = 0;
+    BPlusTree::no_of_Intindex_nodes_cmp=0;
+    BPlusTree::no_of_Leafindex_nodes_cmp=0;
     while (BlockAccess::search(srcRelId, record, attr, attrVal, op) == SUCCESS ) {
 
         int ret = BlockAccess::insert(tarRelId, record);
@@ -174,7 +176,9 @@ int Algebra::select( char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char att
         }
     }
     
-    printf("Number of Comparisons: %d\n", BPlusTree::numOfComparisons);
+    printf("Total Number of Comparisons: %d\n", BPlusTree::numOfComparisons);
+    printf("Total Number of Leaf Index comparisions: %d\n",BPlusTree::no_of_Leafindex_nodes_cmp);
+    printf("Total Number of Internal Index comparisions: %d\n",BPlusTree::no_of_Intindex_nodes_cmp);
     // Close the relation 
     Schema::closeRel(targetRel);
     return SUCCESS;

@@ -18,6 +18,8 @@ class BPlusTree {
 
  public:
   static int numOfComparisons;
+  static int no_of_Leafindex_nodes_cmp;
+  static int no_of_Intindex_nodes_cmp;
   static int bPlusCreate(int relId, char attrName[ATTR_SIZE]);
   static int bPlusInsert(int relId, char attrName[ATTR_SIZE], union Attribute attrVal, RecId recordId);
   static RecId bPlusSearch(int relId, char attrName[ATTR_SIZE], union Attribute attrVal, int op);

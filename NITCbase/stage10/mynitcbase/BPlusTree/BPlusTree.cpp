@@ -3,6 +3,8 @@
 #include <cstring>
 
 int BPlusTree::numOfComparisons;
+int BPlusTree::no_of_Leafindex_nodes_cmp;
+int BPlusTree::no_of_Intindex_nodes_cmp;
 
 /** 
  * @brief 
@@ -108,7 +110,7 @@ RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attr
             internalBlk.getEntry(&intEntry, 0);
             block = intEntry.lChild;
 
-            } 
+        } 
             else {
             /*
             - EQ, GT and GE: move to the left child of the first entry that is
@@ -131,6 +133,7 @@ RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attr
                 internalBlk.getEntry(&intEntry, ind);
                 int ret = compareAttrs(intEntry.attrVal, attrVal, attrCatEntry.attrType );
                 BPlusTree::numOfComparisons++;
+                BPlusTree::no_of_Intindex_nodes_cmp++;
                 if (((op==EQ || op==GE) && ret >= 0)|| (op==GT && ret > 0)) break;
 
                 ind++;
@@ -167,6 +170,7 @@ RecId BPlusTree::bPlusSearch(int relId, char attrName[ATTR_SIZE], Attribute attr
             //                 and input attrVal using compareAttrs()*/
             int cmpVal = compareAttrs(leafEntry.attrVal, attrVal, attrCatEntry.attrType);
             BPlusTree::numOfComparisons++;
+            BPlusTree::no_of_Leafindex_nodes_cmp++;
 
             // (entry satisfying the condition found)
             if (
